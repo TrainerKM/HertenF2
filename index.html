@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TeamPunkt - U8 Tracker</title>
+    <title>TeamPunkt - Live Tracker</title>
     <style>
         :root {
             --primary: #2c3e50;
@@ -12,7 +12,7 @@
             --text: #333;
         }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: var(--bg);
@@ -26,7 +26,6 @@
             text-align: center;
             font-size: 20px;
             font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .tab-content {
             display: none;
@@ -46,7 +45,6 @@
         }
         .card h3 { margin-top: 0; color: var(--primary); }
         
-        /* Tablo Tasarımları */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -59,9 +57,8 @@
             text-align: left;
             border-bottom: 1px solid #eee;
         }
-        th { background-color: #eaeded; color: var(--primary); font-weight: 600; }
+        th { background-color: #eaeded; color: var(--primary); }
         
-        /* Durum Rozetleri */
         .badge {
             padding: 5px 10px;
             border-radius: 20px;
@@ -70,131 +67,110 @@
         }
         .badge.green { background: #d4edda; color: #155724; }
         .badge.red { background: #f8d7da; color: #721c24; }
+        
+        /* Yükleniyor Yazısı */
+        .loading { text-align: center; color: #7f8c8d; padding: 20px; }
 
-        /* Alt Menü (Mobil Uyumlu) */
         nav.bottom-nav {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            bottom: 0; left: 0; right: 0;
             background: white;
             display: flex;
             justify-content: space-around;
             border-top: 1px solid #ddd;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
         }
         nav.bottom-nav button {
-            background: none;
-            border: none;
-            padding: 15px;
-            width: 100%;
-            color: #7f8c8d;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: color 0.2s;
+            background: none; border: none; padding: 15px; width: 100%;
+            color: #7f8c8d; font-size: 14px; font-weight: 500; cursor: pointer;
         }
         nav.bottom-nav button.active {
-            color: var(--secondary);
-            font-weight: bold;
-            border-top: 3px solid var(--secondary);
+            color: var(--secondary); font-weight: bold; border-top: 3px solid var(--secondary);
         }
     </style>
 </head>
 <body>
 
-<header>TeamPunkt U8</header>
+<header>TeamPunkt U8 (Live)</header>
 
-<!-- SEKME 1: ANA SAYFA (STARTSEITE) -->
+<!-- SEKME 1: STARTSEITE -->
 <div id="startseite" class="tab-content active">
     <div class="card">
-        <h3>Willkommen bei TeamPunkt</h3>
-        <p>Dies ist die Anwesenheits- und Trainingsverwaltungsseite für das U8-Team.</p>
-        <p>Verwenden Sie das Menü unten, um zwischen Trainingsdaten und der Spielerliste zu wechseln.</p>
-    </div>
-    <div class="card">
-        <h3>Statistiken (Übersicht)</h3>
-        <p><strong>Aktive Spieler:</strong> 3</p>
-        <p><strong>Geplante Trainings:</strong> 2</p>
+        <h3>Willkommen</h3>
+        <p>Diese Liste wird automatisch aus Google Sheets aktualisiert.</p>
     </div>
 </div>
 
-<!-- SEKME 2: ANTRENMANLAR (TRAININGS) -->
-<div id="trainings" class="tab-content">
-    <h2>Geplante Trainings</h2>
-    
-    <!-- Antrenman 1 -->
-    <div class="card">
-        <h3>U8 Training - Einheit A</h3>
-        <p><strong>Datum:</strong> 20. Mai 2026</p>
-        <p><strong>Uhrzeit:</strong> 17:00 - 18:30 Uhr</p>
-        <p><strong>Ort:</strong> Hauptplatz</p>
-    </div>
-
-    <!-- Antrenman 2 -->
-    <div class="card">
-        <h3>U8 Training - Einheit B</h3>
-        <p><strong>Datum:</strong> 23. Mai 2026</p>
-        <p><strong>Uhrzeit:</strong> 10:00 - 11:30 Uhr</p>
-        <p><strong>Ort:</strong> Halle</p>
-    </div>
-</div>
-
-<!-- SEKME 3: OYUNCULAR (SPIELER) -->
+<!-- SEKME 2: SPIELER (CANLI TABLO) -->
 <div id="spieler" class="tab-content">
-    <h2>Spielerliste (U8)</h2>
+    <h2>Spielerliste</h2>
     <div class="card" style="padding: 0;">
-        <table>
+        <div id="loading-text" class="loading">Spieler werden geladen...</div>
+        <table id="spieler-table" style="display: none;">
             <thead>
                 <tr>
                     <th>Spielername</th>
                     <th>Status</th>
                 </tr>
             </thead>
-            <tbody>
-                <!-- Buradaki isimleri kendi takımınıza göre değiştirebilirsiniz -->
-                <tr>
-                    <td>Max Mustermann</td>
-                    <td><span class="badge green">Aktiv</span></td>
-                </tr>
-                <tr>
-                    <td>Leon Schmidt</td>
-                    <td><span class="badge green">Aktiv</span></td>
-                </tr>
-                <tr>
-                    <td>Mia Fischer</td>
-                    <td><span class="badge red">Verletzt</span></td>
-                </tr>
+            <tbody id="spieler-liste">
+                <!-- Veriler buraya otomatik gelecek -->
             </tbody>
         </table>
     </div>
 </div>
 
-<!-- Alt Sabit Menü -->
+<!-- Alt Menü -->
 <nav class="bottom-nav">
     <button onclick="switchTab('startseite')" id="btn-startseite" class="active">Startseite</button>
-    <button onclick="switchTab('trainings')" id="btn-trainings">Trainings</button>
     <button onclick="switchTab('spieler')" id="btn-spieler">Spieler</button>
 </nav>
 
 <script>
+    // Sekme Değiştirme Fonksiyonu
     function switchTab(tabId) {
-        // Tüm içerikleri gizle
-        document.querySelectorAll('.tab-content').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        // Tüm butonların aktifliğini kaldır
-        document.querySelectorAll('.bottom-nav button').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        
-        // Seçilen içeriği göster ve butonu aktif yap
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         document.getElementById('btn-' + tabId).classList.add('active');
-        
-        // Sayfayı yukarı kaydır
-        window.scrollTo(0, 0);
     }
+
+    // Google Etablodan Veri Çekme Motoru
+    // DIKKAT: Aşağıdaki tırnak içine kendi Google Tablo ID'nizi yapıştırın!
+    const SHEET_ID = '1cA2WaF01NdSRpYulPW2V3eJ9loG5lv79PssAGLcoUUY'; 
+    const SHEET_TITLE = 'Sayfa1'; // Tablonuzun alt sekme adı Almanca ise 'Tabellenblatt1' yapın
+    const FULL_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_TITLE}`;
+
+    fetch(FULL_URL)
+        .then(res => res.text())
+        .then(rep => {
+            // Google'ın gönderdiği ham veriyi temizleme
+            const data = JSON.parse(rep.substr(47).slice(0, -2));
+            const rows = data.table.rows;
+            const tbody = document.getElementById('spieler-liste');
+            
+            // Satırları tek tek tabloya ekleme (İlk satırı başlık sayıp 1. indeksten başlıyoruz)
+            for (let i = 0; i < rows.length; i++) {
+                const name = rows[i].c[0] ? rows[i].c[0].v : '';
+                const status = rows[i].c[1] ? rows[i].c[1].v : 'Aktiv';
+                
+                let badgeClass = status.toLowerCase() === 'aktiv' ? 'green' : 'red';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${name}</td>
+                    <td><span class="badge ${badgeClass}">${status}</span></td>
+                `;
+                tbody.appendChild(tr);
+            }
+            
+            // Yükleniyor yazısını gizle, tabloyu göster
+            document.getElementById('loading-text').style.display = 'none';
+            document.getElementById('spieler-table').style.display = 'table';
+        })
+        .catch(err => {
+            document.getElementById('loading-text').innerText = 'Fehler beim Laden der Daten.';
+            console.error(err);
+        });
 </script>
 
 </body>
